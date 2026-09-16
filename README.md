@@ -62,23 +62,107 @@ Dengan asisten cerdas **Doctor Polichili**, petani, peneliti, maupun pecinta tan
 
 ## 🏗️ Arsitektur Sistem
 
+Aplikasi Policili dibangun dengan menerapkan prinsip **Clean Architecture** (Uncle Bob) dan pola manajemen status **BLoC (Business Logic Component)**. Struktur ini memisahkan tanggung jawab kode secara modular (*Separation of Concerns*), independen dari framework eksternal, mudah diuji (*testable*), dan mudah dirawat (*maintainable*).
+
+### 1. Diagram Layer Clean Architecture & BLoC
+
 ```mermaid
-graph LR
-    subgraph IoT Platform
-        Sensor[Perangkat Sensor Tanah & Cuaca] -->|Kirim Data| Thinger[Thinger.io IoT Server]
+flowchart TD
+    subgraph PresentationLayer ["Layer Presentation (UI & BLoC)"]
+        UI["Widgets & Pages<br/>(HomePage, GeneratePage, SignInPage, dll.)"]
+        Bloc["BLoC (State Management)<br/>(AuthBloc, RecommendationBloc, ProfileBloc, HistoryBloc)"]
+        UI <-->|Dispatch Events / Listen States| Bloc
     end
 
-    subgraph Mobile App (Clean Architecture + BLoC)
-        Thinger -->|Fetch Sensor Data| App[Policili Flutter App]
-        App -->|Autentikasi & Sync| Firebase[Firebase Auth]
-        App -->|Simpan & Ambil Log| MeepLab[MEEP Lab Cloud API]
+    subgraph DomainLayer ["Layer Domain (Murni Dart - Aturan Bisnis)"]
+        UC["Use Cases<br/>(SignIn, GenerateRecommendation, UpdateProfile, dll.)"]
+        RepoContract["Repository Interfaces (Contracts)"]
+        Entities["Business Entities<br/>(User, SensorData, Tanaman, History)"]
+        Bloc -->|Panggil| UC
+        UC -->|Bergantung pada Kontrak| RepoContract
+        UC -.->|Menggunakan| Entities
     end
 
-    subgraph AI Engine
-        App -->|POST Sensor Data| HF[Hugging Face Space - Model RF v2]
-        HF -->|Return Rekomendasi Tanaman| App
+    subgraph DataLayer ["Layer Data (Akses Sumber Data & Model)"]
+        RepoImpl["Repository Implementations"]
+        Models["Data Models / DTO (from/to JSON)"]
+        RemoteDS["Remote Data Sources"]
+        LocalDS["Local Data Sources"]
+
+        RepoContract <|..|Implements| RepoImpl
+        RepoImpl --> RemoteDS
+        RepoImpl --> LocalDS
+        RepoImpl -.-> Models
+    end
+
+    subgraph ExternalServices ["External Services & Hardware"]
+        Thinger["Thinger.io IoT Server<br/>(Data Real-time: Suhu, Kelembaban, pH)"]
+        HFApi["Hugging Face AI Space<br/>(Model Random Forest v2)"]
+        FirebaseAuth["Firebase Authentication<br/>(User Auth & Session)"]
+        MeepLabApi["MEEP Lab Cloud API<br/>(User, Tanamans, Log Activity)"]
+        LocalCache["Storage Lokal<br/>(SharedPreferences & FlutterSecureStorage)"]
+
+        RemoteDS -->|HTTP REST| Thinger
+        RemoteDS -->|HTTP REST| HFApi
+        RemoteDS -->|Firebase SDK| FirebaseAuth
+        RemoteDS -->|HTTP REST| MeepLabApi
+        LocalDS -->|Key-Value Store| LocalCache
     end
 ```
+
+### 2. Diagram Alir Data Rekomendasi (End-to-End)
+
+Diagram berikut menjelaskan siklus alur data saat pengguna menekan tombol **"Generate now"** untuk mendapatkan rekomendasi tanaman:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Pengguna
+    participant UI as Flutter App (Presentation)
+    participant Bloc as RecommendationBloc
+    participant UseCase as GenerateFullRecommendationUseCase
+    participant Thinger as Thinger.io (IoT)
+    participant HF as Hugging Face (Model AI RF v2)
+    participant MeepLab as MEEP Lab API
+
+    User->>UI: Klik "Generate now"
+    UI->>Bloc: Dispatch GenerateRecommendationSubmittedEvent
+    Bloc->>UseCase: Eksekusi Use Case
+    UseCase->>Thinger: GET Nilai Sensor (Suhu, Kelembaban Tanah, Kelembaban Udara, pH)
+    Thinger-->>UseCase: Return Nilai Sensor Real-time
+    UseCase->>HF: POST Data Sensor ke Endpoint Prediksi
+    HF-->>UseCase: Return Rekomendasi Tanaman (Utama & Alternatif)
+    UseCase->>MeepLab: POST Query Detail & Manfaat Tanaman
+    MeepLab-->>UseCase: Return Data & Gambar Tanaman
+    UseCase->>MeepLab: POST Log Aktivitas Prediksi
+    MeepLab-->>UseCase: Status Log Tersimpan
+    UseCase-->>Bloc: Return RecommendationResultEntity
+    Bloc-->>UI: Emit RecommendationLoaded
+    UI-->>User: Tampilkan Halaman Rekomendasi Tanaman & Parameter Sensor
+```
+
+### 3. Penjelasan Layer Arsitektur
+
+1. **Layer Presentation (`lib/features/[fitur]/presentation/`)**
+   - **BLoC**: Bertanggung jawab menerima *Event* dari antarmuka pengguna, memproses logika melalui *Use Case*, dan memancarkan (*emit*) *State* baru ke UI.
+   - **Pages & Widgets**: Komponen UI yang mengonsumsi state secara reaktif melalui `BlocBuilder`, `BlocListener`, atau `BlocConsumer`. Bebas dari logika pemanggilan API langsung.
+
+2. **Layer Domain (`lib/features/[fitur]/domain/`)**
+   - **Entities**: Objek data bisnis inti yang bersih dari anotasi JSON atau dependensi framework.
+   - **Repository Contracts**: *Interface* abstrak yang mendefinisikan kontrak operasi data tanpa mengetahui cara implementasinya.
+   - **Use Cases**: Komponen yang merepresentasikan satu tindakan bisnis spesifik (misalnya: `FetchSensorDataUseCase`, `SignInUseCase`).
+
+3. **Layer Data (`lib/features/[fitur]/data/`)**
+   - **Models**: Representasi data Transfer Object (DTO) yang memiliki kemampuan serialisasi JSON (`fromJson` dan `toJson`).
+   - **Data Sources**:
+     - *Remote Data Source*: Mengelola interaksi jaringan ke REST API (MEEP Lab, Thinger.io, Hugging Face, Firebase).
+     - *Local Data Source*: Mengelola penyimpanan token aman dan cache konfigurasi perangkat.
+   - **Repositories Implementation**: Mengimplementasikan kontrak interface dari Domain layer dengan mengorkestrasi *data sources* dan menangani konversi exception menjadi *Failure*.
+
+4. **Core & App Configuration (`lib/core/` & `lib/app/`)**
+   - **`core/di/`**: Inisialisasi *Dependency Injection* menggunakan **GetIt** (`sl`) untuk menghubungkan implementasi ke abstraksi secara *loose coupling*.
+   - **`core/errors/`**: Standar penanganan kegagalan (*Failure*) dan *Exception* menggunakan pendekatan fungsional `Either<Failure, T>`.
+   - **`app/config/routes/`**: Manajemen navigasi terpusat berbasis *Named Routes* dan *Route Generator*.
 
 ---
 
