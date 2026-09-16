@@ -71,7 +71,8 @@ flowchart TD
     subgraph PresentationLayer ["Layer Presentation (UI & BLoC)"]
         UI["Widgets & Pages<br/>(HomePage, GeneratePage, SignInPage, dll.)"]
         Bloc["BLoC (State Management)<br/>(AuthBloc, RecommendationBloc, ProfileBloc, HistoryBloc)"]
-        UI <-->|Dispatch Events / Listen States| Bloc
+        UI -->|Dispatch Events| Bloc
+        Bloc -->|Emit States| UI
     end
 
     subgraph DomainLayer ["Layer Domain (Murni Dart - Aturan Bisnis)"]
@@ -89,7 +90,7 @@ flowchart TD
         RemoteDS["Remote Data Sources"]
         LocalDS["Local Data Sources"]
 
-        RepoContract <|..|Implements| RepoImpl
+        RepoImpl -.->|Implements| RepoContract
         RepoImpl --> RemoteDS
         RepoImpl --> LocalDS
         RepoImpl -.-> Models
@@ -118,11 +119,11 @@ Diagram berikut menjelaskan siklus alur data saat pengguna menekan tombol **"Gen
 sequenceDiagram
     autonumber
     actor User as Pengguna
-    participant UI as Flutter App (Presentation)
+    participant UI as Flutter App
     participant Bloc as RecommendationBloc
     participant UseCase as GenerateFullRecommendationUseCase
-    participant Thinger as Thinger.io (IoT)
-    participant HF as Hugging Face (Model AI RF v2)
+    participant Thinger as Thinger.io IoT
+    participant HF as Hugging Face AI
     participant MeepLab as MEEP Lab API
 
     User->>UI: Klik "Generate now"
