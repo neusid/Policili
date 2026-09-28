@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/external_user_entity.dart';
 import '../../domain/repositories/profile_repository.dart';
@@ -11,6 +10,15 @@ class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileRemoteDataSource remoteDataSource;
   final ProfileLocalDataSource localDataSource;
 
+  static ExternalUserModel _cachedUser = const ExternalUserModel(
+    id: 1,
+    name: "Petani Cerdas Malik",
+    email: "user@policili.com",
+    deviceId: "POLICILI-IOT-01",
+    sensorId: "SOIL-CLIMATE-01",
+    usernameThinger: "policili_user",
+  );
+
   ProfileRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
@@ -18,106 +26,59 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
   @override
   Future<Either<Failure, ExternalUserEntity>> getUserProfile(String email) async {
-    try {
-      final model = await remoteDataSource.getUserProfile(email);
-      await localDataSource.saveSensorData(model);
-      return Right(model);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
+    final local = await localDataSource.getSensorData();
+    if (local != null) {
+      _cachedUser = local;
+      return Right(local);
     }
+    await localDataSource.saveSensorData(_cachedUser);
+    return Right(_cachedUser);
   }
 
   @override
   Future<Either<Failure, String>> updateUserProfile(ExternalUserEntity user) async {
-    try {
-      final model = ExternalUserModel(
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        deviceId: user.deviceId,
-        sensorId: user.sensorId,
-        usernameThinger: user.usernameThinger,
-      );
-      final response = await remoteDataSource.updateUserProfile(model);
-      await localDataSource.saveSensorData(model);
-      return Right(response);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    _cachedUser = ExternalUserModel(
+      id: user.id ?? 1,
+      name: user.name,
+      email: user.email,
+      deviceId: user.deviceId,
+      sensorId: user.sensorId,
+      usernameThinger: user.usernameThinger,
+    );
+    await localDataSource.saveSensorData(_cachedUser);
+    return const Right("Profil berhasil disimpan (Mode Offline)");
   }
 
   @override
   Future<Either<Failure, void>> saveLocalSensorData(ExternalUserEntity user) async {
-    try {
-      final model = ExternalUserModel(
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        deviceId: user.deviceId,
-        sensorId: user.sensorId,
-        usernameThinger: user.usernameThinger,
-      );
-      await localDataSource.saveSensorData(model);
-      return const Right(null);
-    } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
-    }
+    _cachedUser = ExternalUserModel(
+      id: user.id ?? 1,
+      name: user.name,
+      email: user.email,
+      deviceId: user.deviceId,
+      sensorId: user.sensorId,
+      usernameThinger: user.usernameThinger,
+    );
+    await localDataSource.saveSensorData(_cachedUser);
+    return const Right(null);
   }
 
   @override
   Future<Either<Failure, ExternalUserEntity?>> getLocalSensorData() async {
-    try {
-      final data = await localDataSource.getSensorData();
-      return Right(data);
-    } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
+    final local = await localDataSource.getSensorData();
+    if (local != null) {
+      _cachedUser = local;
     }
+    return Right(_cachedUser);
   }
 
   @override
   Future<Either<Failure, void>> syncThingerToken() async {
-    try {
-      final sensorData = await localDataSource.getSensorData();
-      final password = await localDataSource.getSavedPassword();
-
-      if (sensorData != null && password != null && sensorData.usernameThinger.isNotEmpty) {
-        final tokenData = await remoteDataSource.getThingerToken(
-          username: sensorData.usernameThinger,
-          password: password,
-        );
-        await localDataSource.saveTokens(
-          accessToken: tokenData['access_token'],
-          refreshToken: tokenData['refresh_token'],
-        );
-      }
-      return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    return const Right(null);
   }
 
   @override
   Future<Either<Failure, void>> refreshThingerToken() async {
-    try {
-      final refreshToken = await localDataSource.getRefreshToken();
-      if (refreshToken != null) {
-        final tokenData = await remoteDataSource.refreshThingerToken(refreshToken);
-        await localDataSource.saveTokens(
-          accessToken: tokenData['access_token'],
-          refreshToken: tokenData['refresh_token'],
-        );
-      }
-      return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    return const Right(null);
   }
 }

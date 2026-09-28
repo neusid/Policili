@@ -108,7 +108,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw ServerException('Gagal memperbarui token Thinger');
+        throw const ServerException('Gagal memperbarui token Thinger');
       }
     } catch (e) {
       if (e is ServerException) rethrow;

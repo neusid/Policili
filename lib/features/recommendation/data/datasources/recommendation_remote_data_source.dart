@@ -159,7 +159,7 @@ class RecommendationRemoteDataSourceImpl implements RecommendationRemoteDataSour
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw ServerException('Gagal menyimpan log riwayat');
+        throw const ServerException('Gagal menyimpan log riwayat');
       }
     } catch (e) {
       if (e is ServerException) rethrow;

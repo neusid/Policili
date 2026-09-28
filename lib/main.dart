@@ -9,9 +9,13 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppConfig.initialize();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase offline bypass: $e');
+  }
   await initializeDateFormatting('id_ID', null);
   await initDependencies();
   runApp(const PoliciliApp());

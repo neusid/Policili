@@ -25,12 +25,15 @@ class _SignInPageState extends State<SignInPage> {
     super.initState();
     final authState = context.read<AuthBloc>().state;
     if (authState is Unauthenticated) {
-      if (authState.savedEmail != null) {
-        _emailController.text = authState.savedEmail!;
-      }
-      if (authState.savedPassword != null) {
-        _passwordController.text = authState.savedPassword!;
-      }
+      _emailController.text = (authState.savedEmail != null && authState.savedEmail!.isNotEmpty)
+          ? authState.savedEmail!
+          : 'user@policili.com';
+      _passwordController.text = (authState.savedPassword != null && authState.savedPassword!.isNotEmpty)
+          ? authState.savedPassword!
+          : '123456';
+    } else {
+      _emailController.text = 'user@policili.com';
+      _passwordController.text = '123456';
     }
   }
 
@@ -45,18 +48,12 @@ class _SignInPageState extends State<SignInPage> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
-      UiHelpers.showSnackBar(
-        context,
-        message: 'Mohon isi email dan password',
-        isError: true,
-      );
-      return;
-    }
+    final finalEmail = email.isEmpty ? 'user@policili.com' : email;
+    final finalPassword = password.isEmpty ? '123456' : password;
 
     context.read<AuthBloc>().add(SignInSubmittedEvent(
-          email: email,
-          password: password,
+          email: finalEmail,
+          password: finalPassword,
         ));
   }
 

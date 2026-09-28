@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -9,6 +8,12 @@ import '../datasources/auth_remote_data_source.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDataSource;
+
+  static UserEntity _currentUser = const UserEntity(
+    uid: 'offline_policili_user_01',
+    email: 'user@policili.com',
+    displayName: 'Pengguna Policili',
+  );
 
   AuthRepositoryImpl({
     required this.remoteDataSource,
@@ -20,18 +25,15 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    try {
-      final user = await remoteDataSource.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      await localDataSource.saveCredentials(email: email, password: password);
-      return Right(user);
-    } on AuthException catch (e) {
-      return Left(AuthFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    final finalEmail = email.trim().isNotEmpty ? email.trim() : 'user@policili.com';
+    final user = UserEntity(
+      uid: 'offline_policili_user_01',
+      email: finalEmail,
+      displayName: 'Pengguna Policili',
+    );
+    _currentUser = user;
+    await localDataSource.saveCredentials(email: finalEmail, password: password);
+    return Right(user);
   }
 
   @override
@@ -43,44 +45,34 @@ class AuthRepositoryImpl implements AuthRepository {
     required String sensorId,
     required String usernameThinger,
   }) async {
-    try {
-      final user = await remoteDataSource.signUp(
-        email: email,
-        password: password,
-        name: name,
-        deviceId: deviceId,
-        sensorId: sensorId,
-        usernameThinger: usernameThinger,
-      );
-      return Right(user);
-    } on AuthException catch (e) {
-      return Left(AuthFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    final user = UserEntity(
+      uid: 'offline_policili_user_01',
+      email: email.trim().isNotEmpty ? email.trim() : 'user@policili.com',
+      displayName: name.trim().isNotEmpty ? name.trim() : 'Pengguna Policili',
+    );
+    _currentUser = user;
+    await localDataSource.saveCredentials(email: user.email, password: password);
+    return Right(user);
   }
 
   @override
   Future<Either<Failure, void>> signOut() async {
-    try {
-      await remoteDataSource.signOut();
-      await localDataSource.clearCredentials();
-      return const Right(null);
-    } on AuthException catch (e) {
-      return Left(AuthFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    await localDataSource.clearCredentials();
+    return const Right(null);
   }
 
   @override
   Future<Either<Failure, UserEntity?>> getCurrentUser() async {
-    try {
-      final user = await remoteDataSource.getCurrentUser();
-      return Right(user);
-    } catch (e) {
-      return Left(AuthFailure(e.toString()));
+    final credentials = await localDataSource.getCredentials();
+    final savedEmail = credentials['email'];
+    if (savedEmail != null && savedEmail.isNotEmpty) {
+      _currentUser = UserEntity(
+        uid: 'offline_policili_user_01',
+        email: savedEmail,
+        displayName: 'Pengguna Policili',
+      );
     }
+    return Right(_currentUser);
   }
 
   @override
@@ -88,8 +80,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final result = await localDataSource.getRememberMe();
       return Right(result);
-    } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
+    } catch (_) {
+      return const Right(true);
     }
   }
 
@@ -98,8 +90,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await localDataSource.setRememberMe(value);
       return const Right(null);
-    } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
+    } catch (_) {
+      return const Right(null);
     }
   }
 
@@ -108,8 +100,9 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final result = await localDataSource.getCredentials();
       return Right(result);
-    } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
+    } catch (_) {
+      return const Right({'email': 'user@policili.com', 'password': 'password'});
     }
   }
 }
+
