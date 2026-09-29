@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../../../app/config/routes/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/ui_helpers.dart';
 import '../../../../core/widgets/input_field.dart';
+import '../../../../core/widgets/policili_button.dart';
 import 'package:policili_apps/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:policili_apps/features/auth/presentation/bloc/auth_event.dart';
 import 'package:policili_apps/features/auth/presentation/bloc/auth_state.dart';
@@ -62,7 +62,7 @@ class _ChangeProfilePageState extends State<ChangeProfilePage> {
     if ([name, deviceId, sensorId, usernameThinger].any((f) => f.isEmpty)) {
       UiHelpers.showSnackBar(
         context,
-        message: 'Mohon lengkapi semua data profil dan IoT',
+        message: 'Mohon lengkapi semua kolom profil dan IoT',
         isError: true,
       );
       return;
@@ -83,14 +83,14 @@ class _ChangeProfilePageState extends State<ChangeProfilePage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(
-          "Keluar Akun",
-          style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 16.sp),
+          "Konfirmasi Keluar",
+          style: GoogleFonts.inter(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          "Apakah Anda yakin ingin keluar dari akun?",
-          style: GoogleFonts.inter(fontSize: 13.5.sp, color: const Color(0xff475569)),
+          "Apakah Anda yakin ingin keluar dari akun Policili?",
+          style: GoogleFonts.inter(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -99,9 +99,12 @@ class _ChangeProfilePageState extends State<ChangeProfilePage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xffFF2020),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              minimumSize: const Size(90, 40),
             ),
             onPressed: () {
               Navigator.of(ctx).pop();
@@ -125,301 +128,294 @@ class _ChangeProfilePageState extends State<ChangeProfilePage> {
           );
         }
       },
-      child: BlocConsumer<ProfileBloc, ProfileState>(
-        listener: (context, state) {
-          if (state is ProfileLoaded) {
-            _nameController.text = state.user.name;
-            _deviceController.text = state.user.deviceId;
-            _sensorController.text = state.user.sensorId;
-            _usernameThingerController.text = state.user.usernameThinger;
-          } else if (state is ProfileUpdateSuccess) {
-            UiHelpers.showSnackBar(
-              context,
-              title: 'Berhasil',
-              message: state.message,
-            );
-          } else if (state is ProfileFailure) {
-            UiHelpers.showSnackBar(
-              context,
-              title: 'Gagal',
-              message: state.errorMessage,
-              isError: true,
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state is ProfileLoading;
-
-          return Scaffold(
-            backgroundColor: const Color(0xffFF2020),
-            body: Stack(
-              children: [
-                // Authentic Top Red Banner with bg_card.png
-                Container(
-                  width: double.infinity,
-                  height: 0.95.sw,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      bottomRight: Radius.circular(15.w),
-                      bottomLeft: Radius.circular(15.w),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          elevation: 0,
+          title: Text(
+            "Profil & Perangkat IoT",
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          centerTitle: true,
+          leading: widget.showBackButton && Navigator.canPop(context)
+              ? IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.cardBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 6,
+                        ),
+                      ],
                     ),
-                    image: const DecorationImage(
-                      image: AssetImage("assets/img/bg_card.png"),
-                      fit: BoxFit.cover,
-                    ),
+                    child: const Icon(Icons.arrow_back_rounded, size: 18),
                   ),
-                ),
+                  onPressed: () => Navigator.of(context).pop(),
+                )
+              : null,
+        ),
+        body: BlocConsumer<ProfileBloc, ProfileState>(
+          listener: (context, state) {
+            if (state is ProfileLoaded) {
+              _nameController.text = state.user.name;
+              _deviceController.text = state.user.deviceId;
+              _sensorController.text = state.user.sensorId;
+              _usernameThingerController.text = state.user.usernameThinger;
+            } else if (state is ProfileUpdateSuccess) {
+              UiHelpers.showSnackBar(
+                context,
+                title: 'Berhasil',
+                message: state.message,
+              );
+            } else if (state is ProfileFailure) {
+              UiHelpers.showSnackBar(
+                context,
+                title: 'Gagal',
+                message: state.errorMessage,
+                isError: true,
+              );
+            }
+          },
+          builder: (context, state) {
+            final isLoading = state is ProfileLoading;
 
-                SafeArea(
-                  bottom: false,
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 110),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top Navigation Header
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+                      // Symmetrical User Card
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.cardBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
                         child: Row(
                           children: [
-                            if (widget.showBackButton && Navigator.canPop(context))
-                              GestureDetector(
-                                onTap: () => Navigator.of(context).pop(),
-                                child: Container(
-                                  width: 44.w,
-                                  height: 44.w,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xffD9D9D9),
-                                    borderRadius: BorderRadius.circular(10.r),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.1),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.arrow_back,
-                                    color: Color(0xff1E293B),
-                                  ),
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [AppColors.primary, AppColors.secondary],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                            SizedBox(width: 14.w),
-                            Text(
-                              "Change Profile",
-                              style: GoogleFonts.inter(
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.w700,
+                              child: const Icon(
+                                Icons.person_rounded,
                                 color: Colors.white,
+                                size: 30,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _nameController.text.isNotEmpty
+                                        ? _nameController.text
+                                        : "Petani Policili",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _userEmail.isNotEmpty ? _userEmail : "-",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12.5,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.emeraldSurface,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      "IoT Node Terhubung",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.emeraldDark,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
 
-                      SizedBox(height: 24.h),
+                      const SizedBox(height: 18),
 
-                      // Signature Arched Tab Accent
+                      // Section: Akun Pribadi
                       Container(
-                        width: 280.w,
-                        height: 18.h,
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(36.r),
-                            topRight: Radius.circular(36.r),
-                          ),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.cardBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.badge_outlined,
+                                  size: 18,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Informasi Pribadi",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            InputField(
+                              label: "Nama Lengkap",
+                              controller: _nameController,
+                              hintText: "Nama Anda",
+                            ),
+                          ],
                         ),
                       ),
 
-                      // Signature White Sheet Container
-                      Expanded(
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(36.r),
-                              topRight: Radius.circular(36.r),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.15),
-                                blurRadius: 20,
-                                offset: const Offset(0, -4),
-                              ),
-                            ],
-                          ),
-                          child: SingleChildScrollView(
-                            physics: const BouncingScrollPhysics(),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24.w,
-                              vertical: 24.h,
-                            ),
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 420),
-                                child: Column(
-                                  children: [
-                                    // Authentic Logo Container Box
-                                    Container(
-                                      width: 44.w,
-                                      height: 44.w,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10.r),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.12),
-                                            blurRadius: 10.w,
-                                            offset: const Offset(0, 3),
-                                          ),
-                                        ],
-                                      ),
-                                      padding: EdgeInsets.all(6.w),
-                                      child: Image.asset("assets/img/Logo.png"),
-                                    ),
-                                    SizedBox(height: 12.h),
+                      const SizedBox(height: 18),
 
-                                    Text(
-                                      "Change Profile",
-                                      style: GoogleFonts.inter(
-                                        fontSize: 18.sp,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xff0F172A),
-                                      ),
-                                    ),
-                                    SizedBox(height: 4.h),
-                                    Text(
-                                      "Make changes to your profile here.",
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12.5.sp,
-                                        color: const Color(0xff64748B),
-                                      ),
-                                    ),
-                                    SizedBox(height: 28.h),
-
-                                    // Name Field
-                                    InputField(
-                                      label: "Name",
-                                      controller: _nameController,
-                                      hintText: "Enter your name",
-                                    ),
-                                    SizedBox(height: 16.h),
-
-                                    // Device Name & Sensor Name Row
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: InputField(
-                                            label: "Device Name",
-                                            controller: _deviceController,
-                                            hintText: "Device ID",
-                                          ),
-                                        ),
-                                        SizedBox(width: 14.w),
-                                        Expanded(
-                                          child: InputField(
-                                            label: "Sensor Name",
-                                            controller: _sensorController,
-                                            hintText: "Sensor ID",
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 16.h),
-
-                                    // Username Thinger
-                                    InputField(
-                                      label: "Username Thinger",
-                                      controller: _usernameThingerController,
-                                      hintText: "Thinger username",
-                                    ),
-                                    SizedBox(height: 28.h),
-
-                                    // Change Profile Button
-                                    SizedBox(
-                                      width: double.infinity,
-                                      height: 48.h,
-                                      child: ElevatedButton(
-                                        onPressed: isLoading ? null : _onSaveProfile,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xffFF2020),
-                                          foregroundColor: Colors.white,
-                                          elevation: 2,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8.r),
-                                          ),
-                                        ),
-                                        child: isLoading
-                                            ? const SizedBox(
-                                                width: 20,
-                                                height: 20,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                                ),
-                                              )
-                                            : Text(
-                                                "Change Profile",
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 15.sp,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    SizedBox(height: 14.h),
-
-                                    // Sign Out Button
-                                    SizedBox(
-                                      width: double.infinity,
-                                      height: 48.h,
-                                      child: OutlinedButton(
-                                        onPressed: _onSignOut,
-                                        style: OutlinedButton.styleFrom(
-                                          side: const BorderSide(color: Color(0xffCBD5E1)),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8.r),
-                                          ),
-                                          backgroundColor: Colors.white,
-                                        ),
-                                        child: Text(
-                                          "Keluar Akun",
-                                          style: GoogleFonts.inter(
-                                            fontSize: 14.sp,
-                                            fontWeight: FontWeight.w600,
-                                            color: const Color(0xffDC2626),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(height: 20.h),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+                      // Section: Kredensial Perangkat IoT
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.cardBorder),
                         ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.sensors_rounded,
+                                  size: 18,
+                                  color: AppColors.emeraldDark,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Integrasi Sensor Thinger.io",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Parameter koneksi perangkat keras untuk telemetri suhu, kelembaban, dan pH tanah.",
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            InputField(
+                              label: "Username Thinger.io",
+                              controller: _usernameThingerController,
+                              hintText: "Username akun Thinger",
+                            ),
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: InputField(
+                                    label: "Device ID",
+                                    controller: _deviceController,
+                                    hintText: "ID Perangkat",
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: InputField(
+                                    label: "Sensor ID",
+                                    controller: _sensorController,
+                                    hintText: "ID Resource",
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Actions
+                      PoliciliButton(
+                        text: "Simpan Konfigurasi",
+                        isLoading: isLoading,
+                        onPressed: _onSaveProfile,
+                      ),
+                      const SizedBox(height: 12),
+                      PoliciliButton(
+                        text: "Keluar dari Akun",
+                        isOutlined: true,
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
+                        onPressed: _onSignOut,
                       ),
                     ],
                   ),
                 ),
-
-                // Smooth Loading Overlay
-                if (isLoading)
-                  Container(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    child: Center(
-                      child: LoadingAnimationWidget.fourRotatingDots(
-                        color: Colors.white,
-                        size: 44.w,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
