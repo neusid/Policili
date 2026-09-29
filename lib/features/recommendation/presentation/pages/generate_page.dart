@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/constants/api_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/ui_helpers.dart';
 import '../../../../core/widgets/policili_button.dart';
@@ -182,32 +181,77 @@ class _GeneratePageState extends State<GeneratePage> {
                             ),
                             child: Column(
                               children: [
-                                // Symmetrical Plant Thumbnail Container
+                                // Symmetrical Plant Dummy Image Box (Kotak Dummy)
                                 Container(
-                                  width: 120,
-                                  height: 120,
-                                  padding: const EdgeInsets.all(12),
+                                  width: double.infinity,
+                                  height: 180,
                                   decoration: BoxDecoration(
-                                    color: AppColors.primaryLight.withValues(alpha: 0.5),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: AppColors.primary.withValues(alpha: 0.15),
-                                      width: 2,
-                                    ),
+                                    color: const Color(0xffF8FAFC),
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(color: AppColors.cardBorder),
                                   ),
-                                  child: (plant != null && plant.url.isNotEmpty)
-                                      ? Image.network(
-                                          "${ApiConstants.meepLabImageBaseUrl}/${plant.url}",
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (_, __, ___) => Image.asset(
-                                            "assets/img/mascot.png",
-                                            fit: BoxFit.contain,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // Subtle gradient background
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(18),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              AppColors.primaryLight.withValues(alpha: 0.4),
+                                              const Color(0xffF8FAFC),
+                                            ],
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
                                           ),
-                                        )
-                                      : Image.asset(
+                                        ),
+                                      ),
+
+                                      // In-App Dummy Image Asset
+                                      Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Image.asset(
                                           "assets/img/mascot.png",
+                                          height: 130,
                                           fit: BoxFit.contain,
                                         ),
+                                      ),
+
+                                      // Dummy Image Tag
+                                      Positioned(
+                                        top: 10,
+                                        right: 10,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withValues(alpha: 0.55),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                Icons.image_outlined,
+                                                size: 11,
+                                                color: Colors.white,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                "Image Dummy",
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
 
                                 const SizedBox(height: 16),
