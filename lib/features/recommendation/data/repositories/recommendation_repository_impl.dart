@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/mock/mock_data_service.dart';
 import '../../domain/entities/recommendation_result_entity.dart';
 import '../../domain/entities/sensor_data_entity.dart';
 import '../../domain/entities/tanaman_entity.dart';
@@ -11,9 +12,6 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
   final RecommendationRemoteDataSource remoteDataSource;
   final RecommendationLocalDataSource localDataSource;
 
-  // Cache in-memory untuk menyimpan log prediksi sesi ini agar langsung muncul di Riwayat
-  static final List<Map<String, dynamic>> sessionPredictionLogs = [];
-
   RecommendationRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
@@ -21,37 +19,29 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
 
   @override
   Future<Either<Failure, SensorDataEntity>> fetchSensorData() async {
-    // Data sensor dummy realistis tanpa hit IoT Thinger.io
-    return const Right(SensorDataEntity(
-      suhu: "27.5 °C",
-      humidity: "76 %",
-      soilMoisture: "68 %",
-      ph: "6.5",
-    ));
+    await Future.delayed(const Duration(milliseconds: 250));
+    final sensor = MockDataService.instance.getNextSensorData();
+    return Right(sensor);
   }
 
   @override
   Future<Either<Failure, List<String>>> getCropRecommendation(
     SensorDataEntity sensorData,
   ) async {
-    // Rekomendasi tanaman dummy tanpa hit Hugging Face
+    await Future.delayed(const Duration(milliseconds: 250));
     return const Right([
-      'Cabai Rawit',
+      'Cabai Rawit Merah',
       'Cabai Merah Keriting',
       'Tomat Ceri',
+      'Paprika Hijau',
     ]);
   }
 
   @override
   Future<Either<Failure, TanamanEntity?>> getPlantDetails(String plantName) async {
-    // Detail tanaman dummy tanpa hit MEEP Lab API
-    return const Right(TanamanEntity(
-      idTanaman: 1,
-      name: "Cabai Rawit (Capsicum frutescens)",
-      kelebihan:
-          "Cabai rawit sangat cocok untuk kondisi tanah dan iklim saat ini. Tanaman ini memiliki daya adaptasi tinggi terhadap kelembaban 60-80% dan suhu 25-30°C. Manfaat: Kaya antioksidan capsaicin, vitamin C, memperkuat imunitas tubuh, dan memiliki nilai jual pasar yang sangat tinggi.",
-      url: "", // Menggunakan aset lokal mascot.png secara offline
-    ));
+    await Future.delayed(const Duration(milliseconds: 200));
+    final details = MockDataService.instance.getPlantDetailsFor(plantName);
+    return Right(details);
   }
 
   @override
@@ -60,15 +50,11 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
     required SensorDataEntity sensorData,
     required String recommendation,
   }) async {
-    sessionPredictionLogs.insert(0, {
-      'email': email.isNotEmpty ? email : 'user@policili.com',
-      'suhu': sensorData.suhu,
-      'kelembabanUdara': sensorData.humidity,
-      'kelembabanTanah': sensorData.soilMoisture,
-      'ph': sensorData.ph,
-      'recommendation': recommendation,
-      'date': DateTime.now().toString(),
-    });
+    MockDataService.instance.addPredictionRecord(
+      email: email,
+      sensor: sensorData,
+      recommendation: recommendation,
+    );
     return const Right(null);
   }
 
@@ -76,36 +62,30 @@ class RecommendationRepositoryImpl implements RecommendationRepository {
   Future<Either<Failure, RecommendationResultEntity>> generateFullRecommendation(
     String email,
   ) async {
-    // Langsung buat hasil rekomendasi lengkap secara offline
-    const sensorData = SensorDataEntity(
-      suhu: "27.5 °C",
-      humidity: "76 %",
-      soilMoisture: "68 %",
-      ph: "6.5",
-    );
+    await Future.delayed(const Duration(milliseconds: 350));
+    final sensorData = MockDataService.instance.getNextSensorData();
 
-    const plantDetails = TanamanEntity(
-      idTanaman: 1,
-      name: "Cabai Rawit (Capsicum frutescens)",
-      kelebihan:
-          "Cabai rawit sangat cocok untuk kondisi tanah dan iklim saat ini. Tanaman ini memiliki daya adaptasi tinggi terhadap kelembaban 60-80% dan suhu 25-30°C. Manfaat: Kaya antioksidan capsaicin, vitamin C, memperkuat imunitas tubuh, dan memiliki nilai jual pasar yang sangat tinggi.",
-      url: "",
-    );
+    const crops = [
+      'Cabai Rawit Merah',
+      'Cabai Merah Keriting',
+      'Tomat Ceri',
+    ];
+    final primaryCrop = crops.first;
+    final plantDetails = MockDataService.instance.getPlantDetailsFor(primaryCrop);
+    final alternatives = crops.skip(1).toList();
 
-    const primaryCrop = "Cabai Rawit";
-    const alternativeCrops = ["Cabai Merah Keriting", "Tomat Ceri"];
-
-    await savePredictionLog(
-      email: email.isNotEmpty ? email : "user@policili.com",
-      sensorData: sensorData,
+    // Simpan ke in-memory history log
+    MockDataService.instance.addPredictionRecord(
+      email: email,
+      sensor: sensorData,
       recommendation: primaryCrop,
     );
 
-    return const Right(RecommendationResultEntity(
-      sensorData: sensorData,
-      plantDetails: plantDetails,
+    return Right(RecommendationResultEntity(
       primaryCropName: primaryCrop,
-      alternativeCrops: alternativeCrops,
+      plantDetails: plantDetails,
+      sensorData: sensorData,
+      alternativeCrops: alternatives,
     ));
   }
 }

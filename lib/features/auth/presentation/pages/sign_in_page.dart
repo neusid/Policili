@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../app/config/routes/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/ui_helpers.dart';
 import '../../../../core/widgets/input_field.dart';
+import '../../../../core/widgets/policili_button.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -64,14 +65,14 @@ class _SignInPageState extends State<SignInPage> {
         if (state is Authenticated) {
           UiHelpers.showSnackBar(
             context,
-            title: 'Berhasil',
-            message: 'Login berhasil',
+            title: 'Berhasil Masuk',
+            message: 'Selamat datang kembali di Policili!',
           );
           Navigator.of(context).pushReplacementNamed(AppRoutes.home);
         } else if (state is AuthFailureState) {
           UiHelpers.showSnackBar(
             context,
-            title: 'Gagal',
+            title: 'Gagal Masuk',
             message: state.errorMessage,
             isError: true,
           );
@@ -82,104 +83,155 @@ class _SignInPageState extends State<SignInPage> {
         final isRemembered = state is Unauthenticated ? state.rememberMe : false;
 
         return Scaffold(
-          backgroundColor: const Color(0xffD52424),
+          backgroundColor: AppColors.background,
           body: Stack(
             children: [
-              Column(
-                children: [
-                  SizedBox(height: 0.6.sw),
-                  Container(
-                    width: 280.w,
-                    height: 20.w,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40.r),
-                        topRight: Radius.circular(40.r),
+              // Hero Brand Header
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 280,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primaryDark, AppColors.primary, AppColors.primaryAccent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.15),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Image.asset("assets/img/Logo.png"),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                "Policili",
+                                style: GoogleFonts.inter(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Text(
+                            "Selamat Datang Kembali",
+                            style: GoogleFonts.inter(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "Masuk untuk memantau tanaman cabai dan sensor IoT",
+                            style: GoogleFonts.inter(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                        ],
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: Container(
-                      width: 1.sw,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40.r),
-                          topRight: Radius.circular(40.r),
-                        ),
+                ),
+              ),
+
+              // Form Card Container
+              Positioned.fill(
+                top: 240,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(32),
+                      topRight: Radius.circular(32),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 20,
+                        offset: Offset(0, -5),
                       ),
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: EdgeInsets.all(20.w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: 20.h),
-                              Center(
-                                child: Container(
-                                  width: 30.w,
-                                  height: 30.w,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5.w),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 10.w,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(3.w),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(5.w),
-                                      ),
-                                      child: Image.asset("assets/img/Logo.png"),
-                                    ),
-                                  ),
-                                ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InputField(
+                              label: "Email",
+                              controller: _emailController,
+                              hintText: "nama@policili.com",
+                              keyboardType: TextInputType.emailAddress,
+                              prefixIcon: const Icon(
+                                Icons.mail_outline_rounded,
+                                color: AppColors.textMuted,
+                                size: 20,
                               ),
-                              SizedBox(height: 10.h),
-                              Center(
-                                child: Column(
+                            ),
+                            const SizedBox(height: 18),
+                            InputField(
+                              label: "Kata Sandi",
+                              controller: _passwordController,
+                              isPassword: true,
+                              hintText: "••••••••",
+                              prefixIcon: const Icon(
+                                Icons.lock_outline_rounded,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Remember Me & Forgot Password
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      "Log in to your account",
-                                      style: TextStyle(
-                                        fontSize: 18.sp,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4.h),
-                                    const Text("Welcome back! Please enter your details."),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 40.h),
-                              InputField(
-                                label: "Email",
-                                controller: _emailController,
-                              ),
-                              SizedBox(height: 10.h),
-                              InputField(
-                                label: "Password",
-                                controller: _passwordController,
-                                isPassword: true,
-                              ),
-                              SizedBox(height: 10.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Checkbox(
+                                    SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Checkbox(
                                         value: isRemembered,
-                                        checkColor: Colors.white,
-                                        activeColor: Colors.blue,
+                                        activeColor: AppColors.primary,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
                                         onChanged: (bool? newValue) {
                                           context.read<AuthBloc>().add(
                                                 ToggleRememberMeEvent(
@@ -187,107 +239,105 @@ class _SignInPageState extends State<SignInPage> {
                                               );
                                         },
                                       ),
-                                      const Text("Remember me"),
-                                    ],
-                                  ),
-                                  InkWell(
-                                    borderRadius: BorderRadius.circular(4.r),
-                                    splashColor: Colors.blue.withOpacity(0.3),
-                                    onTap: () {},
-                                    child: const Text(
-                                      "Forgot Password",
-                                      style: TextStyle(color: Colors.blue),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 10.h),
-                              SizedBox(
-                                width: 1.sw,
-                                child: ElevatedButton(
-                                  onPressed: isLoading ? null : _onSignIn,
-                                  style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4.r),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Ingat Saya",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.textSecondary,
+                                      ),
                                     ),
-                                    backgroundColor: const Color(0xffFF2020),
+                                  ],
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    UiHelpers.showSnackBar(
+                                      context,
+                                      message: "Silakan hubungi admin untuk reset kata sandi.",
+                                    );
+                                  },
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   ),
                                   child: Text(
-                                    "Sign in",
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
+                                    "Lupa Sandi?",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Primary CTA
+                            PoliciliButton(
+                              text: "Masuk ke Akun",
+                              isLoading: isLoading,
+                              onPressed: _onSignIn,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Google Sign In Button
+                            PoliciliButton(
+                              text: "Masuk dengan Google",
+                              isOutlined: true,
+                              icon: Image.asset(
+                                "assets/img/google.png",
+                                width: 20,
+                                height: 20,
                               ),
-                              SizedBox(height: 10.h),
-                              SizedBox(
-                                width: 1.sw,
-                                child: ElevatedButton(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4.r),
-                                      side: const BorderSide(color: Colors.black12),
-                                    ),
-                                    backgroundColor: const Color(0xffFFFFFF),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        "assets/img/google.png",
-                                        width: 16.w,
-                                      ),
-                                      SizedBox(width: 8.w),
-                                      Text(
-                                        "Sign in with Google",
-                                        style: TextStyle(
-                                          color: Colors.black.withOpacity(0.8),
-                                        ),
-                                      ),
-                                    ],
+                              onPressed: () {
+                                UiHelpers.showSnackBar(
+                                  context,
+                                  message: "Fitur Google Sign-In sedang disiapkan.",
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 28),
+
+                            // Sign Up Redirect
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Belum memiliki akun?",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
-                              ),
-                              SizedBox(height: 10.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text("Don't have an account?"),
-                                  SizedBox(width: 5.w),
-                                  Material(
-                                    child: InkWell(
-                                      onTap: () {
-                                        Navigator.of(context)
-                                            .pushReplacementNamed(AppRoutes.signUp);
-                                      },
-                                      child: const Text(
-                                        "Sign up",
-                                        style: TextStyle(color: Colors.blue),
-                                      ),
+                                const SizedBox(width: 6),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context)
+                                        .pushReplacementNamed(AppRoutes.signUp);
+                                  },
+                                  child: Text(
+                                    "Daftar Sekarang",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
-              if (isLoading)
-                Container(
-                  color: Colors.black.withOpacity(0.5),
-                  child: Center(
-                    child: LoadingAnimationWidget.fourRotatingDots(
-                      color: Colors.red,
-                      size: 50.w,
-                    ),
-                  ),
                 ),
+              ),
             ],
           ),
         );

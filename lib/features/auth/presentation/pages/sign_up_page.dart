@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../app/config/routes/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/ui_helpers.dart';
 import '../../../../core/widgets/input_field.dart';
-import '../../../../core/widgets/input_field_short.dart';
+import '../../../../core/widgets/policili_button.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -48,7 +48,7 @@ class _SignUpPageState extends State<SignUpPage> {
         .any((field) => field.isEmpty)) {
       UiHelpers.showSnackBar(
         context,
-        message: 'Mohon lengkapi semua kolom pendaftaran',
+        message: 'Mohon lengkapi semua data pendaftaran & perangkat IoT.',
         isError: true,
       );
       return;
@@ -66,14 +66,12 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is SignUpSuccessState) {
           UiHelpers.showSnackBar(
             context,
-            title: 'Berhasil',
+            title: 'Pendaftaran Berhasil',
             message: state.message,
           );
           Navigator.of(context).pushReplacementNamed(AppRoutes.signIn);
@@ -90,176 +88,290 @@ class _SignUpPageState extends State<SignUpPage> {
         final isLoading = state is AuthLoading;
 
         return Scaffold(
-          backgroundColor: const Color(0xffFF2020),
+          backgroundColor: AppColors.background,
           body: Stack(
             children: [
-              Column(
-                children: [
-                  SizedBox(height: 0.25.sw),
-                  Container(
-                    width: 280.w,
-                    height: 20.w,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40.r),
-                        topRight: Radius.circular(40.r),
-                      ),
+              // Hero Brand Header
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 240,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primaryDark, AppColors.primary, AppColors.primaryAccent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                   ),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40.r),
-                          topRight: Radius.circular(40.r),
-                        ),
-                      ),
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: EdgeInsets.all(width * 0.05),
-                          child: Column(
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              SizedBox(height: 20.h),
-                              Center(
-                                child: Container(
-                                  width: 30.w,
-                                  height: 30.w,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5.w),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 10.w,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(3.w),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(5.w),
-                                      ),
-                                      child: Image.asset("assets/img/Logo.png"),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 10.h),
-                              Center(
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      "Sign Up to create your account",
-                                      style: TextStyle(
-                                        fontSize: width * 0.05,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    SizedBox(height: width * 0.01),
-                                    const Text(
-                                      "Welcome! Please enter your details.",
+                              Container(
+                                width: 40,
+                                height: 40,
+                                padding: const EdgeInsets.all(7),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.15),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
                                     ),
                                   ],
                                 ),
+                                child: Image.asset("assets/img/Logo.png"),
                               ),
-                              SizedBox(height: 40.h),
-                              InputField(
-                                label: "Email",
-                                controller: _emailController,
-                              ),
-                              SizedBox(height: 10.h),
-                              InputField(
-                                label: "Password",
-                                controller: _passwordController,
-                                isPassword: true,
-                              ),
-                              SizedBox(height: 10.h),
-                              InputField(
-                                label: "Name",
-                                controller: _nameController,
-                              ),
-                              SizedBox(height: 10.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  InputFieldShort(
-                                    label: "Device Name",
-                                    controller: _deviceIdController,
-                                  ),
-                                  InputFieldShort(
-                                    label: "Sensor Name",
-                                    controller: _sensorIdController,
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 10.h),
-                              InputField(
-                                label: "Username Thinger",
-                                controller: _usernameThingerController,
-                              ),
-                              SizedBox(height: 30.h),
-                              SizedBox(
-                                width: width * 1,
-                                child: ElevatedButton(
-                                  onPressed: isLoading ? null : _onSignUp,
-                                  style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(width * 0.01),
-                                    ),
-                                    backgroundColor: const Color(0xffFF2020),
-                                  ),
-                                  child: Text(
-                                    "Sign up",
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                    ),
-                                  ),
+                              const SizedBox(width: 12),
+                              Text(
+                                "Policili",
+                                style: GoogleFonts.inter(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
                                 ),
-                              ),
-                              SizedBox(height: 10.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text("Have an account?"),
-                                  SizedBox(width: width * 0.01),
-                                  Material(
-                                    child: InkWell(
-                                      onTap: () {
-                                        Navigator.of(context)
-                                            .pushReplacementNamed(AppRoutes.signIn);
-                                      },
-                                      child: const Text(
-                                        "Sign in",
-                                        style: TextStyle(color: Colors.blue),
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ),
                             ],
                           ),
+                          const Spacer(),
+                          Text(
+                            "Buat Akun Baru",
+                            style: GoogleFonts.inter(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Daftarkan akun dan hubungkan sensor IoT pertanian Anda",
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Form Card
+              Positioned.fill(
+                top: 205,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(32),
+                      topRight: Radius.circular(32),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 20,
+                        offset: Offset(0, -5),
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Section: Data Akun
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.person_outline_rounded,
+                                  color: AppColors.primary,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Informasi Pribadi",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            InputField(
+                              label: "Nama Lengkap",
+                              controller: _nameController,
+                              hintText: "Nama Anda",
+                              prefixIcon: const Icon(
+                                Icons.badge_outlined,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            InputField(
+                              label: "Alamat Email",
+                              controller: _emailController,
+                              hintText: "nama@policili.com",
+                              keyboardType: TextInputType.emailAddress,
+                              prefixIcon: const Icon(
+                                Icons.mail_outline_rounded,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            InputField(
+                              label: "Kata Sandi",
+                              controller: _passwordController,
+                              isPassword: true,
+                              hintText: "Minimal 6 karakter",
+                              prefixIcon: const Icon(
+                                Icons.lock_outline_rounded,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Section: Integrasi IoT
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.emeraldSurface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.emerald.withValues(alpha: 0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.sensors_rounded,
+                                        color: AppColors.emeraldDark,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        "Konfigurasi Perangkat IoT",
+                                        style: GoogleFonts.inter(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.emeraldDark,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Masukkan kredensial perangkat Thinger.io Anda",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  InputField(
+                                    label: "Username Thinger.io",
+                                    controller: _usernameThingerController,
+                                    hintText: "Username akun Thinger.io",
+                                    prefixIcon: const Icon(
+                                      Icons.account_circle_outlined,
+                                      color: AppColors.textMuted,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: InputField(
+                                          label: "Device ID",
+                                          controller: _deviceIdController,
+                                          hintText: "ID Perangkat",
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: InputField(
+                                          label: "Sensor ID",
+                                          controller: _sensorIdController,
+                                          hintText: "ID Sensor",
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 26),
+
+                            // Submit CTA
+                            PoliciliButton(
+                              text: "Daftar Akun",
+                              isLoading: isLoading,
+                              onPressed: _onSignUp,
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Back to sign in
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Sudah memiliki akun?",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context)
+                                        .pushReplacementNamed(AppRoutes.signIn);
+                                  },
+                                  child: Text(
+                                    "Masuk",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
-              if (isLoading)
-                Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Colors.black.withOpacity(0.5),
-                  child: Center(
-                    child: LoadingAnimationWidget.fourRotatingDots(
-                      color: Colors.red,
-                      size: 50.w,
-                    ),
-                  ),
                 ),
+              ),
             ],
           ),
         );

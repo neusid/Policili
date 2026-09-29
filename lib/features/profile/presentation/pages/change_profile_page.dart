@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../app/config/routes/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/ui_helpers.dart';
 import '../../../../core/widgets/input_field.dart';
-import '../../../../core/widgets/input_field_short.dart';
+import '../../../../core/widgets/policili_button.dart';
 import 'package:policili_apps/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:policili_apps/features/auth/presentation/bloc/auth_event.dart';
 import 'package:policili_apps/features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/external_user_entity.dart';
 import '../bloc/profile_bloc.dart';
@@ -13,7 +15,12 @@ import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
 
 class ChangeProfilePage extends StatefulWidget {
-  const ChangeProfilePage({super.key});
+  const ChangeProfilePage({
+    super.key,
+    this.showBackButton = true,
+  });
+
+  final bool showBackButton;
 
   @override
   State<ChangeProfilePage> createState() => _ChangeProfilePageState();
@@ -55,7 +62,7 @@ class _ChangeProfilePageState extends State<ChangeProfilePage> {
     if ([name, deviceId, sensorId, usernameThinger].any((f) => f.isEmpty)) {
       UiHelpers.showSnackBar(
         context,
-        message: 'Mohon lengkapi semua kolom profil',
+        message: 'Mohon lengkapi semua kolom profil dan IoT',
         isError: true,
       );
       return;
@@ -72,215 +79,336 @@ class _ChangeProfilePageState extends State<ChangeProfilePage> {
     context.read<ProfileBloc>().add(UpdateProfileEvent(user));
   }
 
+  void _onSignOut() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Konfirmasi Keluar",
+          style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          "Apakah Anda yakin ingin keluar dari akun Policili?",
+          style: GoogleFonts.inter(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              minimumSize: const Size(90, 40),
+            ),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              context.read<AuthBloc>().add(SignOutRequestedEvent());
+            },
+            child: const Text("Keluar"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
-    return BlocConsumer<ProfileBloc, ProfileState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is ProfileLoaded) {
-          _nameController.text = state.user.name;
-          _deviceController.text = state.user.deviceId;
-          _sensorController.text = state.user.sensorId;
-          _usernameThingerController.text = state.user.usernameThinger;
-        } else if (state is ProfileUpdateSuccess) {
-          UiHelpers.showSnackBar(
-            context,
-            title: 'Berhasil',
-            message: state.message,
-          );
-        } else if (state is ProfileFailure) {
-          UiHelpers.showSnackBar(
-            context,
-            title: 'Gagal',
-            message: state.errorMessage,
-            isError: true,
+        if (state is Unauthenticated) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRoutes.signIn,
+            (route) => false,
           );
         }
       },
-      builder: (context, state) {
-        final isLoading = state is ProfileLoading;
-
-        return Scaffold(
-          backgroundColor: const Color(0xffFF2020),
-          body: Stack(
-            children: [
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(15.w),
-                    bottomLeft: Radius.circular(15.w),
-                  ),
-                  image: const DecorationImage(
-                    image: AssetImage("assets/img/bg_card.png"),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                height: 0.95.sw,
-              ),
-              Column(
-                children: [
-                  SizedBox(height: 0.1.sw),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Container(
-                            width: 0.13.sw,
-                            height: 0.13.sw,
-                            decoration: BoxDecoration(
-                              color: const Color(0xffD9D9D9),
-                              borderRadius: BorderRadius.circular(10.w),
-                            ),
-                            child: const Icon(Icons.arrow_back),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 0.2.sw),
-                  Container(
-                    width: 280.w,
-                    height: 20.w,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          title: Text(
+            "Profil & Perangkat IoT",
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          centerTitle: true,
+          leading: widget.showBackButton && Navigator.canPop(context)
+              ? IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40.r),
-                        topRight: Radius.circular(40.r),
-                      ),
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.cardBorder),
                     ),
+                    child: const Icon(Icons.arrow_back_rounded, size: 18),
                   ),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40.r),
-                          topRight: Radius.circular(40.r),
+                  onPressed: () => Navigator.of(context).pop(),
+                )
+              : null,
+        ),
+        body: BlocConsumer<ProfileBloc, ProfileState>(
+          listener: (context, state) {
+            if (state is ProfileLoaded) {
+              _nameController.text = state.user.name;
+              _deviceController.text = state.user.deviceId;
+              _sensorController.text = state.user.sensorId;
+              _usernameThingerController.text = state.user.usernameThinger;
+            } else if (state is ProfileUpdateSuccess) {
+              UiHelpers.showSnackBar(
+                context,
+                title: 'Berhasil',
+                message: state.message,
+              );
+            } else if (state is ProfileFailure) {
+              UiHelpers.showSnackBar(
+                context,
+                title: 'Gagal',
+                message: state.errorMessage,
+                isError: true,
+              );
+            }
+          },
+          builder: (context, state) {
+            final isLoading = state is ProfileLoading;
+
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 110),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // User Identity Card
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.cardBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ),
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: EdgeInsets.all(width * 0.05),
-                          child: Column(
-                            children: [
-                              SizedBox(height: 20.h),
-                              Center(
-                                child: Container(
-                                  width: 30.w,
-                                  height: 30.w,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(5.w),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 10.w,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(3.w),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(5.w),
-                                      ),
-                                      child: Image.asset("assets/img/Logo.png"),
-                                    ),
-                                  ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [AppColors.primary, AppColors.secondary],
                                 ),
+                                borderRadius: BorderRadius.circular(18),
                               ),
-                              SizedBox(height: 10.h),
-                              Center(
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      "Change Profile",
-                                      style: TextStyle(
-                                        fontSize: width * 0.05,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    SizedBox(height: width * 0.01),
-                                    const Text(
-                                      "Make changes to your profile here.",
-                                    ),
-                                  ],
-                                ),
+                              child: const Icon(
+                                Icons.person_rounded,
+                                color: Colors.white,
+                                size: 32,
                               ),
-                              SizedBox(height: 40.h),
-                              InputField(
-                                label: "Name",
-                                controller: _nameController,
-                              ),
-                              SizedBox(height: 10.h),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  InputFieldShort(
-                                    label: "Device Name",
-                                    controller: _deviceController,
+                                  Text(
+                                    _nameController.text.isNotEmpty
+                                        ? _nameController.text
+                                        : "Petani Policili",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
                                   ),
-                                  InputFieldShort(
-                                    label: "Sensor Name",
-                                    controller: _sensorController,
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _userEmail.isNotEmpty ? _userEmail : "-",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.emeraldSurface,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      "IoT Node Terdaftar",
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.emeraldDark,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 10.h),
-                              InputField(
-                                label: "Username Thinger",
-                                controller: _usernameThingerController,
-                              ),
-                              SizedBox(height: 30.h),
-                              SizedBox(
-                                width: width * 1,
-                                child: ElevatedButton(
-                                  onPressed: isLoading ? null : _onSaveProfile,
-                                  style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(width * 0.01),
-                                    ),
-                                    backgroundColor: const Color(0xffFF2020),
-                                  ),
-                                  child: Text(
-                                    "Change Profile",
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 10.h),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-              if (isLoading)
-                Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Colors.black.withOpacity(0.5),
-                  child: Center(
-                    child: LoadingAnimationWidget.fourRotatingDots(
-                      color: Colors.red,
-                      size: 50.w,
-                    ),
+                      const SizedBox(height: 20),
+
+                      // Section: Akun Pribadi
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.cardBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.badge_outlined,
+                                  size: 18,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Informasi Pribadi",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            InputField(
+                              label: "Nama Lengkap",
+                              controller: _nameController,
+                              hintText: "Nama Anda",
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Section: Kredensial Perangkat IoT (Thinger.io)
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.cardBorder),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.sensors_rounded,
+                                  size: 18,
+                                  color: AppColors.emeraldDark,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Integrasi Sensor Thinger.io",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Digunakan oleh mesin AI untuk menarik telemetri real-time tanah dan suhu tanaman cabai.",
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            InputField(
+                              label: "Username Thinger.io",
+                              controller: _usernameThingerController,
+                              hintText: "Username akun Thinger",
+                              prefixIcon: const Icon(
+                                Icons.cloud_outlined,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            InputField(
+                              label: "Device ID",
+                              controller: _deviceController,
+                              hintText: "ID Perangkat IoT",
+                              prefixIcon: const Icon(
+                                Icons.router_outlined,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            InputField(
+                              label: "Sensor Resource ID",
+                              controller: _sensorController,
+                              hintText: "Nama resource sensor",
+                              prefixIcon: const Icon(
+                                Icons.memory_outlined,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Save CTA
+                      PoliciliButton(
+                        text: "Simpan Konfigurasi",
+                        isLoading: isLoading,
+                        onPressed: _onSaveProfile,
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Sign Out Button
+                      PoliciliButton(
+                        text: "Keluar dari Akun",
+                        isOutlined: true,
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
+                        onPressed: _onSignOut,
+                      ),
+                    ],
                   ),
                 ),
-            ],
-          ),
-        );
-      },
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

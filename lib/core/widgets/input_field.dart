@@ -1,71 +1,95 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_colors.dart';
 
-class InputField extends StatelessWidget {
+class InputField extends StatefulWidget {
   const InputField({
     super.key,
     required this.label,
     this.isPassword = false,
     required this.controller,
     this.validator,
+    this.hintText,
+    this.prefixIcon,
+    this.keyboardType,
+    this.textInputAction,
+    this.readOnly = false,
+    this.onChanged,
   });
 
   final String label;
   final bool isPassword;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
+  final String? hintText;
+  final Widget? prefixIcon;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final bool readOnly;
+  final ValueChanged<String>? onChanged;
+
+  @override
+  State<InputField> createState() => _InputFieldState();
+}
+
+class _InputFieldState extends State<InputField> {
+  late bool _obscureText;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscureText = widget.isPassword;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label),
-        SizedBox(height: 5.w),
-        SizedBox(
-          height: 45.w,
-          child: TextFormField(
-            controller: controller,
-            obscureText: isPassword,
-            textAlignVertical: TextAlignVertical.center,
-            validator: validator,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(width * 0.1),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.black12,
-                  width: 1.w,
-                ),
-                borderRadius: BorderRadius.circular(width * 0.015),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.blue,
-                  width: 1.w,
-                ),
-                borderRadius: BorderRadius.circular(width * 0.015),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.red,
-                  width: 1.w,
-                ),
-                borderRadius: BorderRadius.circular(width * 0.015),
-              ),
-              hintText: 'Enter your $label',
-              hintStyle: TextStyle(
-                fontSize: 11.sp,
-                fontWeight: FontWeight.w500,
-              ),
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(
-                vertical: 0.028.sh,
-                horizontal: 0.05.sw,
-              ),
+        if (widget.label.isNotEmpty) ...[
+          Text(
+            widget.label,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.labelDark,
             ),
+          ),
+          const SizedBox(height: 6),
+        ],
+        TextFormField(
+          controller: widget.controller,
+          obscureText: widget.isPassword ? _obscureText : false,
+          readOnly: widget.readOnly,
+          keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
+          onChanged: widget.onChanged,
+          validator: widget.validator,
+          style: GoogleFonts.inter(
+            fontSize: 14.5,
+            fontWeight: FontWeight.w400,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            hintText: widget.hintText ?? 'Masukkan ${widget.label}',
+            prefixIcon: widget.prefixIcon,
+            suffixIcon: widget.isPassword
+                ? IconButton(
+                    icon: Icon(
+                      _obscureText
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: AppColors.textMuted,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureText = !_obscureText;
+                      });
+                    },
+                  )
+                : null,
           ),
         ),
       ],

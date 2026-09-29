@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'app/config/app.dart';
 import 'app/config/app_config.dart';
@@ -8,6 +9,9 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Offline Font Guard: mencegah google_fonts melakukan request HTTP saat offline
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   AppConfig.initialize();
   try {
     await Firebase.initializeApp(

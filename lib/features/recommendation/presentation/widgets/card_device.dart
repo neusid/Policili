@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class CardDevice extends StatelessWidget {
   const CardDevice({
@@ -18,65 +18,74 @@ class CardDevice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          width: 0.9.sw,
-          height: 0.16.sw,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.w),
-            color: const Color(0xffE9E9E9),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        ),
-        Container(
-          width: 0.7.sw,
-          height: 0.16.sw,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.w),
-            color: Colors.white,
-          ),
-          child: Row(
-            children: [
-              SizedBox(width: 65.w),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      labelName,
-                      style: GoogleFonts.inter(
-                        fontSize: 10.sp,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    Text(
-                      labelValue,
-                      style: GoogleFonts.urbanist(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          width: 0.16.sw,
-          height: 0.16.sw,
-          decoration: BoxDecoration(
-            color: Colors.red,
-            borderRadius: BorderRadius.circular(15.w),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(15.w),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.emeraldSurface,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Image.asset("assets/img/iot.png"),
           ),
-        ),
-      ],
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  labelName,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  labelValue,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.emeraldSurface,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              status,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.emeraldDark,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

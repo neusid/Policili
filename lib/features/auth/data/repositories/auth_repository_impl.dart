@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/mock/mock_data_service.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_data_source.dart';
@@ -8,12 +9,6 @@ import '../datasources/auth_remote_data_source.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDataSource;
-
-  static UserEntity _currentUser = const UserEntity(
-    uid: 'offline_policili_user_01',
-    email: 'user@policili.com',
-    displayName: 'Pengguna Policili',
-  );
 
   AuthRepositoryImpl({
     required this.remoteDataSource,
@@ -25,13 +20,15 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
   }) async {
+    await Future.delayed(const Duration(milliseconds: 250));
     final finalEmail = email.trim().isNotEmpty ? email.trim() : 'user@policili.com';
+    MockDataService.instance.userEmail = finalEmail;
+
     final user = UserEntity(
       uid: 'offline_policili_user_01',
       email: finalEmail,
-      displayName: 'Pengguna Policili',
+      displayName: MockDataService.instance.userName,
     );
-    _currentUser = user;
     await localDataSource.saveCredentials(email: finalEmail, password: password);
     return Right(user);
   }
@@ -45,18 +42,28 @@ class AuthRepositoryImpl implements AuthRepository {
     required String sensorId,
     required String usernameThinger,
   }) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    final finalEmail = email.trim().isNotEmpty ? email.trim() : 'user@policili.com';
+    final finalName = name.trim().isNotEmpty ? name.trim() : 'Pengguna Policili';
+
+    MockDataService.instance.userEmail = finalEmail;
+    MockDataService.instance.userName = finalName;
+    MockDataService.instance.deviceId = deviceId;
+    MockDataService.instance.sensorId = sensorId;
+    MockDataService.instance.usernameThinger = usernameThinger;
+
     final user = UserEntity(
       uid: 'offline_policili_user_01',
-      email: email.trim().isNotEmpty ? email.trim() : 'user@policili.com',
-      displayName: name.trim().isNotEmpty ? name.trim() : 'Pengguna Policili',
+      email: finalEmail,
+      displayName: finalName,
     );
-    _currentUser = user;
-    await localDataSource.saveCredentials(email: user.email, password: password);
+    await localDataSource.saveCredentials(email: finalEmail, password: password);
     return Right(user);
   }
 
   @override
   Future<Either<Failure, void>> signOut() async {
+    await Future.delayed(const Duration(milliseconds: 150));
     await localDataSource.clearCredentials();
     return const Right(null);
   }
@@ -66,13 +73,13 @@ class AuthRepositoryImpl implements AuthRepository {
     final credentials = await localDataSource.getCredentials();
     final savedEmail = credentials['email'];
     if (savedEmail != null && savedEmail.isNotEmpty) {
-      _currentUser = UserEntity(
-        uid: 'offline_policili_user_01',
-        email: savedEmail,
-        displayName: 'Pengguna Policili',
-      );
+      MockDataService.instance.userEmail = savedEmail;
     }
-    return Right(_currentUser);
+    return Right(UserEntity(
+      uid: 'offline_policili_user_01',
+      email: MockDataService.instance.userEmail,
+      displayName: MockDataService.instance.userName,
+    ));
   }
 
   @override
@@ -105,4 +112,3 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 }
-
