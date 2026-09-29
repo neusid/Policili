@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/date_formatter.dart';
 
 class CardHistory extends StatelessWidget {
@@ -26,234 +26,150 @@ class CardHistory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: 14.h),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder, width: 1),
+        borderRadius: BorderRadius.circular(14.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: Date & Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Color(0xffF8FAFC),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(19),
-                topRight: Radius.circular(19),
-              ),
-              border: Border(
-                bottom: BorderSide(color: AppColors.cardBorder, width: 1),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today_rounded,
-                      size: 14,
-                      color: AppColors.textMuted,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      DateFormatter.formatIndonesianDateTime(date),
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.emeraldSurface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.emerald.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14.r),
+        child: Column(
+          children: [
+            // Authentic Gray Header with Logo.png & Date
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+              color: const Color(0xffE2E8F0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Image.asset(
+                    "assets/img/Logo.png",
+                    width: 24.w,
+                    height: 24.w,
                   ),
-                  child: Text(
-                    "Terverifikasi AI",
+                  Text(
+                    DateFormatter.formatIndonesianDateTime(date),
                     style: GoogleFonts.inter(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.emeraldDark,
+                      fontSize: 11.5.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xff475569),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          // Body: Plant info & Telemetry Grid
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 54,
-                      height: 54,
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryLight.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: imageUrl.startsWith('http')
-                          ? Image.network(
-                              imageUrl,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => Image.asset(
-                                "assets/img/mascot.png",
-                              ),
-                            )
-                          : Image.asset(
+            // Card Body
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+              child: Row(
+                children: [
+                  // Plant / Mascot Thumbnail
+                  Container(
+                    width: 58.w,
+                    height: 58.w,
+                    padding: EdgeInsets.all(4.w),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffFFF1F2),
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: (imageUrl.startsWith('http'))
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => Image.asset(
                               "assets/img/mascot.png",
                               fit: BoxFit.contain,
                             ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Rekomendasi Tanaman",
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textMuted,
-                            ),
+                          )
+                        : Image.asset(
+                            "assets/img/mascot.png",
+                            fit: BoxFit.contain,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            plantName,
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                              letterSpacing: -0.3,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(width: 14.w),
+
+                  // Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          plantName,
+                          style: GoogleFonts.inter(
+                            fontSize: 14.5.sp,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xff0F172A),
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                const Divider(height: 1, color: AppColors.cardBorder),
-                const SizedBox(height: 14),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 8.h),
 
-                // 4 Sensor Mini Pills
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSensorItem(
-                        icon: Icons.thermostat_rounded,
-                        color: AppColors.tempColor,
-                        bgColor: AppColors.tempBg,
-                        label: "Suhu",
-                        value: "$temperature°C",
-                      ),
+                        // 2 Columns of Sensor Stats
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Kel. tanah - ${soilMoisture.contains('%') ? soilMoisture : '$soilMoisture%'}",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11.sp,
+                                      color: const Color(0xff64748B),
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    "Kel. udara - ${airMoisture.contains('%') ? airMoisture : '$airMoisture%'}",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11.sp,
+                                      color: const Color(0xff64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "pH - $ph",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11.sp,
+                                      color: const Color(0xff64748B),
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    "Suhu - ${temperature.contains('°C') ? temperature : '$temperature°C'}",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11.sp,
+                                      color: const Color(0xff64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildSensorItem(
-                        icon: Icons.science_rounded,
-                        color: AppColors.phColor,
-                        bgColor: AppColors.phBg,
-                        label: "pH",
-                        value: ph,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSensorItem(
-                        icon: Icons.water_drop_rounded,
-                        color: AppColors.humidityColor,
-                        bgColor: AppColors.humidityBg,
-                        label: "Udara",
-                        value: "$airMoisture%",
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildSensorItem(
-                        icon: Icons.grass_rounded,
-                        color: AppColors.soilColor,
-                        bgColor: AppColors.soilBg,
-                        label: "Tanah",
-                        value: "$soilMoisture%",
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSensorItem({
-    required IconData icon,
-    required Color color,
-    required Color bgColor,
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: bgColor.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
-          Text(
-            "$label: ",
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: GoogleFonts.inter(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                  ),
+                ],
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
